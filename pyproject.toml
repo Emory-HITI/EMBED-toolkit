@@ -1,0 +1,12 @@
+# included to allow the package to be installed in editable mode
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "embed_tools"
+version = "0.0.1"
+# ...
+dependencies = [
+    "pandas >= 2.2",
+]
