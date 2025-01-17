@@ -1,9 +1,13 @@
-# tools to work with magview in the Emory Breast Imaging Dataset (EMBED)
-import pandas as pd
-from pandas.api.extensions import register_dataframe_accessor
+"""
+Tools to process clinical data in EMBED.
+"""
+from pandas import DataFrame, Series, concat
+from numpy import nan
 from tqdm.auto import tqdm
+from pandas.api.extensions import register_dataframe_accessor
 
 # utilities defines utility functions (like print formatting) and basic types/type imports
+# TODO: modify to remove relative imports
 from .utilities import print_features_table, Optional, Callable
 
 
@@ -59,7 +63,7 @@ class EMBEDParameters:
         # TODO: allow EMBEDParameters to be modified globally by the user to change all downstream usage? how should this be done?
 
     @staticmethod
-    def count_patients(df: pd.DataFrame) -> int:
+    def count_patients(df: DataFrame) -> int:
         try:
             n = df['empi_anon'].nunique()
         except KeyError:
@@ -67,7 +71,7 @@ class EMBEDParameters:
         return n
     
     @staticmethod
-    def count_exams(df: pd.DataFrame) -> int:
+    def count_exams(df: DataFrame) -> int:
         try:
             n = df['acc_anon'].nunique()
         except KeyError:
@@ -75,7 +79,7 @@ class EMBEDParameters:
         return n
     
     @staticmethod
-    def count_findings(df: pd.DataFrame) -> int:
+    def count_findings(df: DataFrame) -> int:
         try:
             n = (df['acc_anon'].astype(str) + "_" + df['numfind'].astype(str)).nunique()
         except KeyError:
@@ -83,7 +87,7 @@ class EMBEDParameters:
         return n
     
     @staticmethod
-    def count_pngs(df: pd.DataFrame) -> int:
+    def count_pngs(df: DataFrame) -> int:
         try:
             n = df['png_path'].nunique()
         except KeyError:
@@ -91,14 +95,14 @@ class EMBEDParameters:
         return n
 
     @staticmethod
-    def count_dicoms(df: pd.DataFrame) -> int:
+    def count_dicoms(df: DataFrame) -> int:
         try:
             n = df['anon_dicom_path'].nunique()
         except KeyError:
             n = -9 # -9 indicates the feature is missing
         return n
 
-    def summary_count(self, df: pd.DataFrame, summary_dict: Optional[dict[str, Callable]] = None) -> dict[str, int]:
+    def summary_count(self, df: DataFrame, summary_dict: Optional[dict[str, Callable]] = None) -> dict[str, int]:
         """
         Generates a summary of counts for specified features in a DataFrame.
 
@@ -107,7 +111,7 @@ class EMBEDParameters:
         If no `summary_dict` is provided, a default set of counting functions is used.
 
         Args:
-            df (pd.DataFrame): The input DataFrame containing the data to summarize.
+            df (DataFrame): The input DataFrame containing the data to summarize.
             summary_dict (Optional[dict[str, Callable]]): A dictionary where keys are feature names 
                 (e.g., "Patients", "Exams") and values are functions that take the DataFrame as input 
                 and return a count for the corresponding feature. If `summary_dict` is None, the 
@@ -196,7 +200,7 @@ class EMBEDParameters:
         return out_list
 
     @staticmethod
-    def extract_exam_laterality(row: pd.Series) -> str:
+    def extract_exam_laterality(row: Series) -> str:
         """
         Extracts the laterality of an exam from its description.
 
@@ -209,7 +213,7 @@ class EMBEDParameters:
         - 'None' if none of the above conditions were true
 
         Args:
-            row (pd.Series): A row from a Pandas DataFrame containing the exam description 
+            row (Series): A row from a Pandas DataFrame containing the exam description 
                 in the 'desc' column.
 
         Returns:
@@ -235,12 +239,12 @@ class EMBEDParameters:
             return "None"
 
     @staticmethod
-    def aggregate_birads(group: pd.DataFrame) -> str:
+    def aggregate_birads(group: DataFrame) -> str:
         """
         Aggregates finding BIRADS assessment for an exam to get the most severe.
 
         Args:
-            group (pd.DataFrame): A DataFrame containing findings for a single exam. 
+            group (DataFrame): A DataFrame containing findings for a single exam. 
                 The DataFrame must include the following columns:
                 - 'desc': Exam description.
                 - 'asses': Findings BIRADS assessments.
@@ -286,7 +290,7 @@ class EMBEDParameters:
         return worst_br_str
 
     @staticmethod
-    def extract_characteristics(row: pd.Series) -> dict[str, int]:
+    def extract_characteristics(row: Series) -> dict[str, int]:
         """
         Extracts finding-level imaging characteristics from a given row of data.
 
@@ -304,7 +308,7 @@ class EMBEDParameters:
             )
 
         Args:
-            row (pd.Series): A pandas Series object representing a single row of data. 
+            row (Series): A pandas Series object representing a single row of data. 
                 The Series should contain the following keys:
                 - 'massshape'
                 - 'massmargin'
@@ -337,14 +341,14 @@ class EMBEDParameters:
         if row['massshape']in ['Q', 'A']:
             findings_dict['arch_distortion'] = 1
     
-        if ((row['calcdistri'] is not np.nan) 
-            or (row['calcfind'] is not np.nan) 
+        if ((row['calcdistri'] is not nan) 
+            or (row['calcfind'] is not nan) 
             or (row['calcnumber'] > 0)):
             findings_dict['calcification'] = 1
     
         return findings_dict
 
-    def aggregate_characteristics(self, group: pd.DataFrame):
+    def aggregate_characteristics(self, group: DataFrame):
         """
         Aggregates finding-level characteristics to the exam-level.
 
@@ -364,7 +368,7 @@ class EMBEDParameters:
                 mag_df[char_type] = mag_df['acc_anon'].map(char_dict)
 
         Args:
-            group (pd.DataFrame): A pandas DataFrame representing a group of findings
+            group (DataFrame): A pandas DataFrame representing a group of findings
                 from an exam. The DataFrame must contain the following columns:
                 - 'mass': Binary column indicating the presence (1) or absence (0) of a mass.
                 - 'asymmetry': Binary column indicating the presence (1) or absence (0) of an asymmetry.
@@ -417,7 +421,7 @@ class EMBEDDataFrameTools:
     def __init__(self, pandas_object):
         self._df = pandas_object
 
-    def head_cols(self, *cols: str, col_list: Optional[list[str]] = None) -> pd.DataFrame:
+    def head_cols(self, *cols: str, col_list: Optional[list[str]] = None) -> DataFrame:
         """
         Returns a subset of the DataFrame with commonly used or user-specified columns.
 
@@ -432,7 +436,7 @@ class EMBEDDataFrameTools:
                 If provided, it overrides the default column list.
 
         Returns:
-            pd.DataFrame: A subset of the DataFrame containing the specified columns.
+            DataFrame: A subset of the DataFrame containing the specified columns.
 
         Example Usage:
             # Retrieve a subset of the DataFrame with default and additional columns
@@ -462,7 +466,7 @@ class EMBEDDataFrameTools:
             return count_dict
 
 
-def correct_contralaterals(df: pd.DataFrame, derived_finding_code: int = -9) -> pd.DataFrame:
+def correct_contralaterals(df: DataFrame, derived_finding_code: int = -9) -> DataFrame:
     """
     Ensures that negative contralateral findings are included for exams that imply their presence.
 
@@ -471,7 +475,7 @@ def correct_contralaterals(df: pd.DataFrame, derived_finding_code: int = -9) -> 
     side with derived finding codes, ensuring consistency with the original data structure.
 
     Args:
-        df (pd.DataFrame): The input DataFrame containing exam and finding data. 
+        df (DataFrame): The input DataFrame containing exam and finding data. 
             It must include the following columns:
             - 'side': Specifies the side of the finding ('L', 'R', 'B', or NaN).
             - 'desc': Description of the exam, used to identify bilateral exams.
@@ -481,7 +485,7 @@ def correct_contralaterals(df: pd.DataFrame, derived_finding_code: int = -9) -> 
             for derived rows. Defaults to -9.
 
     Returns:
-        pd.DataFrame: A corrected DataFrame that includes derived contralateral findings 
+        DataFrame: A corrected DataFrame that includes derived contralateral findings 
         for exams that implied their presence but lacked explicit entries. Side can be ('L', 'R', or 'B')
 
     Example Usage:
@@ -539,7 +543,7 @@ def correct_contralaterals(df: pd.DataFrame, derived_finding_code: int = -9) -> 
     n_correction = len(acc_contralat_correction_dict)
 
     # initialize correction_df
-    correction_df = pd.DataFrame(data=None, columns=out_df.columns, index=range(n_correction))
+    correction_df = DataFrame(data=None, columns=out_df.columns, index=range(n_correction))
     
     for i, (acc, correction_side) in tqdm(enumerate(acc_contralat_correction_dict.items()), total=n_correction):
         # take the first row associated with the same acc and extract the column details to copy over 
@@ -553,4 +557,4 @@ def correct_contralaterals(df: pd.DataFrame, derived_finding_code: int = -9) -> 
         correction_df.iloc[i] = copy_dict
         
     # finally, concat the output and correction dfs, then sort by study date and reset the index
-    return pd.concat([out_df, correction_df]).sort_values(['empi_anon', 'acc_anon', 'numfind']).reset_index(drop=True)
+    return concat([out_df, correction_df]).sort_values(['empi_anon', 'acc_anon', 'numfind']).reset_index(drop=True)
