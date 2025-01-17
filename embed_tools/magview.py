@@ -234,7 +234,56 @@ class EMBEDParameters:
         else:
             return "None"
 
-    
+    @staticmethod
+    def aggregate_birads(group: pd.DataFrame) -> str:
+        """
+        Aggregates finding BIRADS assessment for an exam to get the most severe.
+
+        Args:
+            group (pd.DataFrame): A DataFrame containing findings for a single exam. 
+                The DataFrame must include the following columns:
+                - 'desc': Exam description.
+                - 'asses': Findings BIRADS assessments.
+
+        Returns:
+            str: The BIRADS category corresponding to the worst assessment in the group. 
+                Possible values are 'A', 'B', 'N', 'P', 'S', 'M', or 'K'. If no valid 
+                assessment is found, an empty string is returned.
+
+        Example Usage:
+            # Group the DataFrame by exam ID
+            # extract a dict containing the exam ID -> worst BIRADS mapping for each exam
+            exam_br_dict = df.groupby('acc_anon').apply(embed_params.aggregate_birads).to_dict()
+
+            # Map aggregated BIRADS scores back to the DataFrame on exam IDs
+            df['exam_birads'] = df['acc_anon'].map(exam_br_dict)
+
+        """
+        exam_desc: str = group.desc.iloc[0].item()
+        is_screen_exam: bool = "screen" in exam_desc.lower()
+
+        if is_screen_exam:
+            br_to_val_dict: dict[str, int] = {
+                'A': 0, # 'A' maps to birads 0
+                'B': 1, # 'B' maps to birads 2
+                'N': 2  # 'N' maps to birads 1
+            }
+        else:
+            br_to_val_dict: dict[str, int] = {
+                'N': 5, # 'N' maps to birads 1
+                'B': 4, # 'B' maps to birads 2
+                'P': 3, # 'P' maps to birads 3
+                'S': 2, # 'S' maps to birads 4
+                'M': 1, # 'M' maps to birads 5
+                'K': 0  # 'K' maps to birads 6
+            }
+        
+        # map birads scores against finding assessments, then get the worst (min) int
+        worst_br_val: int = min(group.asses.map(br_to_val_dict).tolist())
+        # flip the br_to_val_dict to convert it back to a string (empty string if invalid)
+        val_to_br_dict: dict[int, str] = {v:k for k,v in br_to_val_dict.items()}
+        worst_br_str: str = val_to_br_dict.get(worst_br_val, '')
+        return worst_br_str
 
     @staticmethod
     def extract_characteristics(row: pd.Series) -> dict[str, int]:
