@@ -462,4 +462,4 @@ def correct_contralaterals(df: pd.DataFrame, derived_finding_code: int = -9) -> 
         correction_df.iloc[i] = copy_dict
         
     # finally, concat the output and correction dfs, then sort by study date and reset the index
-    return pd.concat([out_df, correction_df]).sort_values("study_date_anon").reset_index(drop=True)
+    return pd.concat([out_df, correction_df]).sort_values(['empi_anon', 'acc_anon', 'numfind']).reset_index(drop=True)
