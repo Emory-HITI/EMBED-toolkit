@@ -140,7 +140,7 @@ class EMBEDParameters:
             summary_dict: dict[str, Callable] = {
                 "Patients": self.count_patients,
                 "Exams": self.count_exams,
-                "Findings": self.ount_findings,
+                "Findings": self.count_findings,
                 "PNGs": self.count_pngs,
                 "DICOMs": self.count_dicoms,
             }
@@ -417,6 +417,7 @@ def correct_contralaterals(df: pd.DataFrame, derived_finding_code: int = -9) -> 
         7. Combine the original and derived rows, sort by `study_date_anon`, and reset the index.
 
     """
+    embed_params: EMBEDParameters = EMBEDParameters()
     out_df = df.copy() # copy the dataframe to ensure we don't modify the original
     
     # numfind for all derived rows will be coded as specified
@@ -424,7 +425,7 @@ def correct_contralaterals(df: pd.DataFrame, derived_finding_code: int = -9) -> 
     col_copy_list: list[str] = []
     
     # extract all exam and patient level features
-    col_copy_list = self._params.level_features(['exam', 'patient'])
+    col_copy_list = embed_params.list_columns(['exam', 'patient'])
 
     # get list of exams that require contralateral correction
     # normalize 'side' column: treat empty string/nan as 'B'
@@ -446,8 +447,7 @@ def correct_contralaterals(df: pd.DataFrame, derived_finding_code: int = -9) -> 
     acc_contralat_correction_dict = {acc:("L" if sides[0] == "R" else "R" ) for acc,sides in exam_finding_unique_sides_dict.items() if len(sides) == 1}
     n_correction = len(acc_contralat_correction_dict)
 
-    # initialize correction_df with the same dtypes as out_df
-    # correction_df = pd.DataFrame({col: pd.Series(dtype=dtype) for col, dtype in dtypes_dict.items()}, index=range(n_correction))
+    # initialize correction_df
     correction_df = pd.DataFrame(data=None, columns=out_df.columns, index=range(n_correction))
     
     for i, (acc, correction_side) in tqdm(enumerate(acc_contralat_correction_dict.items()), total=n_correction):
