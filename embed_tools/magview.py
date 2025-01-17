@@ -195,7 +195,49 @@ class EMBEDParameters:
 
         return out_list
 
-    def extract_characteristics(self, row: pd.Series) -> dict[str, int]:
+    @staticmethod
+    def extract_exam_laterality(row: pd.Series) -> str:
+        """
+        Extracts the laterality of an exam from its description.
+
+        This method checks the description of an exam to derive its laterality. 
+        It returns one of the following values based on the presence of keywords in the 
+        description:
+        - 'B' for bilateral findings (if 'bilat' is included in the description).
+        - 'L' for left-sided findings (if 'left' is included).
+        - 'R' for right-sided findings (if 'right' is included).
+        - 'None' if none of the above conditions were true
+
+        Args:
+            row (pd.Series): A row from a Pandas DataFrame containing the exam description 
+                in the 'desc' column.
+
+        Returns:
+            str: A string representing the laterality of the exam. Possible values are 
+                'B', 'L', 'R', or 'None'.
+
+        Example Usage:
+            # Apply the method to a DataFrame to extract laterality for each row
+            df["exam_laterality"] = df.apply(embed_params.extract_exam_laterality, axis=1)
+
+        Notes:
+            - The string matching is case-insensitive.
+        """
+        finding_desc = row.desc.lower()
+        
+        if ("bilat" in finding_desc):
+            return "B"
+        elif ("left" in finding_desc):
+            return "L"
+        elif ("right" in finding_desc):
+            return "R"
+        else:
+            return "None"
+
+    
+
+    @staticmethod
+    def extract_characteristics(row: pd.Series) -> dict[str, int]:
         """
         Extracts finding-level imaging characteristics from a given row of data.
 
