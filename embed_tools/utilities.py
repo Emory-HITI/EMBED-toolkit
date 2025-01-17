@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Callable
 
 def print_features_table(features_dict: dict[str, int], title: Optional[str] = None):
     """
