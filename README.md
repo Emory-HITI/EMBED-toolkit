@@ -1,2 +1,2 @@
 # EMBED Toolkit
-### v0.0.1
+### v0.1.1
