@@ -13,6 +13,7 @@ jobs:
       url: https://test.pypi.org/p/embed-toolkit
     permissions:
       id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
