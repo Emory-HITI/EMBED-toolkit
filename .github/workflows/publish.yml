@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://test.pypi.org/p/embed_toolkit
+      url: https://test.pypi.org/p/embed-toolkit
     permissions:
       id-token: write
     steps:
