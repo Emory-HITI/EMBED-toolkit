@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: release
-      url: https://test.pypi.org/p/embed-toolkit
+      url: https://pypi.org/p/embed-toolkit
     permissions:
       id-token: write
       contents: read
@@ -31,4 +31,4 @@ jobs:
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: https://test.pypi.org/legacy/
+          repository-url: https://pypi.org/legacy/
