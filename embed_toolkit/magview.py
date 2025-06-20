@@ -323,28 +323,32 @@ class EMBEDParameters:
         """
         
         # output imaging features coded as either 0: absent or 1: present
-        findings_dict: dict[str, int] = {
-            'mass': 0,
-            'asymmetry': 0,
-            'arch_distortion': 0,
-            'calcification': 0
-        }
-    
-        if ((row['massshape'] in ['G', 'R', 'O', 'X', 'N', 'Y', 'D', 'L']) 
-            or (row['massmargin'] in ['D', 'U', 'M', 'I', 'S']) 
-            or (row['massdens'] in ['+', '-', '='])):
-            findings_dict['mass'] = 1
-    
-        if row['massshape'] in ['T', 'B', 'S', 'F', 'V']:
-            findings_dict['asymmetry'] = 1
-    
-        if row['massshape']in ['Q', 'A']:
-            findings_dict['arch_distortion'] = 1
-    
-        if ((row['calcdistri'] is not nan) 
-            or (row['calcfind'] is not nan) 
-            or (row['calcnumber'] > 0)):
-            findings_dict['calcification'] = 1
+	    findings_dict: dict[str, int] = {
+	        'mass': 0,
+	        'asymmetry': 0,
+	        'arch_distortion': 0,
+	        'calcification': 0
+	    }
+	
+	    if (
+	        (row['massshape'] in ['G', 'R', 'O', 'X', 'N', 'Y', 'D', 'L']) 
+	        or (row['massmargin'] in ['D', 'U', 'M', 'I', 'S']) 
+	        or (row['massdens'] in ['+', '-', '='])
+	    ):
+	        findings_dict['mass'] = 1
+	
+	    if row['massshape'] in ['T', 'B', 'S', 'F', 'V']:
+	        findings_dict['asymmetry'] = 1
+	
+	    if row['massshape'] in ['Q', 'A']:
+	        findings_dict['arch_distortion'] = 1
+	
+	    if (
+	        (~pd.isna(row['calcdistri']) & (row['calcdistri'] != '')) 
+	        or (~pd.isna(row['calcfind']) & (row['calcfind'] != ''))
+	        or (~pd.isna(row['calcnumber']) & (row['calcnumber'] > 0))
+	    ):
+	        findings_dict['calcification'] = 1
     
         return findings_dict
 
