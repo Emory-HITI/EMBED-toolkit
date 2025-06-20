@@ -1,8 +1,7 @@
 """
 Tools to process clinical data in EMBED.
 """
-from pandas import DataFrame, Series, concat
-from numpy import nan
+from pandas import DataFrame, Series, concat, isna
 from tqdm.auto import tqdm
 from pandas.api.extensions import register_dataframe_accessor
 
@@ -323,33 +322,33 @@ class EMBEDParameters:
         """
         
         # output imaging features coded as either 0: absent or 1: present
-	    findings_dict: dict[str, int] = {
-	        'mass': 0,
-	        'asymmetry': 0,
-	        'arch_distortion': 0,
-	        'calcification': 0
-	    }
-	
-	    if (
-	        (row['massshape'] in ['G', 'R', 'O', 'X', 'N', 'Y', 'D', 'L']) 
-	        or (row['massmargin'] in ['D', 'U', 'M', 'I', 'S']) 
-	        or (row['massdens'] in ['+', '-', '='])
-	    ):
-	        findings_dict['mass'] = 1
-	
-	    if row['massshape'] in ['T', 'B', 'S', 'F', 'V']:
-	        findings_dict['asymmetry'] = 1
-	
-	    if row['massshape'] in ['Q', 'A']:
-	        findings_dict['arch_distortion'] = 1
-	
-	    if (
-	        (~pd.isna(row['calcdistri']) & (row['calcdistri'] != '')) 
-	        or (~pd.isna(row['calcfind']) & (row['calcfind'] != ''))
-	        or (~pd.isna(row['calcnumber']) & (row['calcnumber'] > 0))
-	    ):
-	        findings_dict['calcification'] = 1
-    
+        findings_dict: dict[str, int] = {
+            'mass': 0,
+            'asymmetry': 0,
+            'arch_distortion': 0,
+            'calcification': 0
+        }
+
+        if (
+            (row['massshape'] in ['G', 'R', 'O', 'X', 'N', 'Y', 'D', 'L']) 
+            or (row['massmargin'] in ['D', 'U', 'M', 'I', 'S']) 
+            or (row['massdens'] in ['+', '-', '='])
+        ):
+            findings_dict['mass'] = 1
+
+        if row['massshape'] in ['T', 'B', 'S', 'F', 'V']:
+            findings_dict['asymmetry'] = 1
+
+        if row['massshape'] in ['Q', 'A']:
+            findings_dict['arch_distortion'] = 1
+
+        if (
+            (~isna(row['calcdistri']) & (row['calcdistri'] != '')) 
+            or (~isna(row['calcfind']) & (row['calcfind'] != ''))
+            or (~isna(row['calcnumber']) & (row['calcnumber'] > 0))
+        ):
+            findings_dict['calcification'] = 1
+
         return findings_dict
 
     def aggregate_characteristics(self, group: DataFrame):
@@ -462,7 +461,7 @@ class EMBEDDataFrameTools:
             # otherwise just return the df
             return self._df[col_list]
 
-    def summarize(self, title: Optional[str] = None, print_counts: bool = True) -> None:
+    def summarize(self, title: Optional[str] = None, print_counts: bool = True) -> Optional[dict[str, int]]:
         count_dict = self._params.summary_count(self._df)
         if print_counts:
             print_features_table(count_dict, title)
