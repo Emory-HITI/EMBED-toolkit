@@ -4,7 +4,7 @@ requires = ["setuptools>=64", "setuptools_scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "embed_toolkit"
+name = "embed-toolkit"
 dynamic = ["version"]
 # version = "0.1.1"
 # ...

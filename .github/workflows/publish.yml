@@ -9,10 +9,11 @@ jobs:
     name: Publish release to PyPI
     runs-on: ubuntu-latest
     environment:
-      name: pypi
-      url: https://test.pypi.org/p/embed_toolkit
+      name: release
+      url: https://pypi.org/p/embed-toolkit
     permissions:
       id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -22,6 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          python -m pip install --user --upgrade build
           pip install setuptools wheel
       - name: Build package
         run: |
