@@ -142,7 +142,6 @@ class EMBEDParameters:
     head_columns: list[str] = [
         "empi_anon",
         "acc_anon",
-        "study_date_anon",
         "desc",
         "side",
         "asses",
@@ -526,7 +525,12 @@ class EMBEDDataFrameTools:
     def __init__(self, pandas_object):
         self._df = pandas_object
 
-    def head_cols(self, *cols: str, col_list: Optional[list[str]] = None) -> DataFrame:
+    def head_cols(
+        self,
+        *cols: str,
+        sort_by: str = "study_date_anon",
+        col_list: Optional[list[str]] = None
+    ) -> DataFrame:
         """
         Returns a subset of the DataFrame with commonly used or user-specified columns.
 
@@ -553,11 +557,14 @@ class EMBEDDataFrameTools:
         # returns a subset of the dataframe using a set of commonly used minimum columns (can be overwritten by specifying `col_list` or added to with positional string args)
         if col_list is None:
             default_col_list = self._params.head_columns
+            default_col_list.append(sort_by)
+            default_col_list = list(set(default_col_list))
+
             col_list = [c for c in [*default_col_list, *cols] if c in self._df.columns]
 
         try:
             # return df sorted by date if possible
-            return self._df[col_list].sort_values("study_date_anon")
+            return self._df[col_list].sort_values(sort_by)
 
         except KeyError:
             # otherwise just return the df
