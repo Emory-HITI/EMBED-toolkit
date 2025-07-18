@@ -142,7 +142,6 @@ class EMBEDParameters:
     head_columns: list[str] = [
         "empi_anon",
         "acc_anon",
-        "study_date_anon",
         "desc",
         "side",
         "asses",
@@ -299,201 +298,202 @@ class EMBEDParameters:
 
         return out_list
 
-    @staticmethod
-    def extract_exam_laterality(row: Series) -> str:
-        """
-        Extracts the laterality of an exam from its description.
 
-        This method checks the description of an exam to derive its laterality.
-        It returns one of the following values based on the presence of keywords in the
-        description:
-        - 'B' for bilateral findings (if 'bilat' is included in the description).
-        - 'L' for left-sided findings (if 'left' is included).
-        - 'R' for right-sided findings (if 'right' is included).
-        - 'None' if none of the above conditions were true
+def extract_exam_laterality(row: Series) -> str:
+    """
+    Extracts the laterality of an exam from its description.
 
-        Args:
-            row (Series): A row from a Pandas DataFrame containing the exam description
-                in the 'desc' column.
+    This method checks the description of an exam to derive its laterality.
+    It returns one of the following values based on the presence of keywords in the
+    description:
+    - 'B' for bilateral findings (if 'bilat' is included in the description).
+    - 'L' for left-sided findings (if 'left' is included).
+    - 'R' for right-sided findings (if 'right' is included).
+    - 'None' if none of the above conditions were true
 
-        Returns:
-            str: A string representing the laterality of the exam. Possible values are
-                'B', 'L', 'R', or 'None'.
+    Args:
+        row (Series): A row from a Pandas DataFrame containing the exam description
+            in the 'desc' column.
 
-        Example Usage:
-            # Apply the method to a DataFrame to extract laterality for each row
-            df["exam_laterality"] = df.apply(embed_params.extract_exam_laterality, axis=1)
+    Returns:
+        str: A string representing the laterality of the exam. Possible values are
+            'B', 'L', 'R', or 'None'.
 
-        Notes:
-            - The string matching is case-insensitive.
-        """
-        finding_desc = row.desc.lower()
+    Example Usage:
+        # Apply the method to a DataFrame to extract laterality for each row
+        df["exam_laterality"] = df.apply(embed_params.extract_exam_laterality, axis=1)
 
-        if "bilat" in finding_desc:
-            return "B"
-        elif "left" in finding_desc:
-            return "L"
-        elif "right" in finding_desc:
-            return "R"
-        else:
-            return "None"
+    Notes:
+        - The string matching is case-insensitive.
+    """
+    finding_desc = row.desc.lower()
 
-    @staticmethod
-    def aggregate_birads(group: DataFrame) -> str:
-        """
-        Aggregates finding BIRADS assessment for an exam to get the most severe.
+    if "bilat" in finding_desc:
+        return "B"
+    elif "left" in finding_desc:
+        return "L"
+    elif "right" in finding_desc:
+        return "R"
+    else:
+        return "None"
 
-        Args:
-            group (DataFrame): A DataFrame containing findings for a single exam.
-                The DataFrame must include the following columns:
-                - 'desc': Exam description.
-                - 'asses': Findings BIRADS assessments.
 
-        Returns:
-            str: The BIRADS category corresponding to the worst assessment in the group.
-                Possible values are 'A', 'B', 'N', 'P', 'S', 'M', or 'K'. If no valid
-                assessment is found, an empty string is returned.
+def aggregate_birads(group: DataFrame) -> str:
+    """
+    Aggregates finding BIRADS assessment for an exam to get the most severe.
 
-        Example Usage:
-            # Group the DataFrame by exam ID
-            # extract a dict containing the exam ID -> worst BIRADS mapping for each exam
-            exam_br_dict = df.groupby('acc_anon').apply(embed_params.aggregate_birads).to_dict()
+    Args:
+        group (DataFrame): A DataFrame containing findings for a single exam.
+            The DataFrame must include the following columns:
+            - 'desc': Exam description.
+            - 'asses': Findings BIRADS assessments.
 
-            # Map aggregated BIRADS scores back to the DataFrame on exam IDs
-            df['exam_birads'] = df['acc_anon'].map(exam_br_dict)
+    Returns:
+        str: The BIRADS category corresponding to the worst assessment in the group.
+            Possible values are 'A', 'B', 'N', 'P', 'S', 'M', or 'K'. If no valid
+            assessment is found, an empty string is returned.
 
-        """
-        exam_desc: str = group.desc.iloc[0].item()
-        is_screen_exam: bool = "screen" in exam_desc.lower()
+    Example Usage:
+        # Group the DataFrame by exam ID
+        # extract a dict containing the exam ID -> worst BIRADS mapping for each exam
+        exam_br_dict = df.groupby('acc_anon').apply(embed_params.aggregate_birads).to_dict()
 
-        if is_screen_exam:
-            br_to_val_dict: dict[str, int] = {
-                "A": 0,  # 'A' maps to birads 0
-                "B": 1,  # 'B' maps to birads 2
-                "N": 2,  # 'N' maps to birads 1
-            }
-        else:
-            br_to_val_dict: dict[str, int] = {
-                "N": 5,  # 'N' maps to birads 1
-                "B": 4,  # 'B' maps to birads 2
-                "P": 3,  # 'P' maps to birads 3
-                "S": 2,  # 'S' maps to birads 4
-                "M": 1,  # 'M' maps to birads 5
-                "K": 0,  # 'K' maps to birads 6
-            }
+        # Map aggregated BIRADS scores back to the DataFrame on exam IDs
+        df['exam_birads'] = df['acc_anon'].map(exam_br_dict)
 
-        # map birads scores against finding assessments, then get the worst (min) int
-        worst_br_val: int = min(group.asses.map(br_to_val_dict).tolist())
-        # flip the br_to_val_dict to convert it back to a string (empty string if invalid)
-        val_to_br_dict: dict[int, str] = {v: k for k, v in br_to_val_dict.items()}
-        worst_br_str: str = val_to_br_dict.get(worst_br_val, "")
-        return worst_br_str
+    """
+    exam_desc: str = group.desc.iloc[0].item()
+    is_screen_exam: bool = "screen" in exam_desc.lower()
 
-    @staticmethod
-    def extract_characteristics(row: Series) -> dict[str, int]:
-        """
-        Extracts finding-level imaging characteristics from a given row of data.
-
-        This method processes a pandas Series representing a single row of data
-        and determines the presence (1) or absence (0) of specific imaging
-        features (Mass, Asymmetry, Architectural Distortion, Calcification).
-
-        The output is a dictionary with binary values indicating the presence of these features.
-
-        Example Usage:
-            mag_df[['mass', 'asymmetry', 'arch_distortion', 'calcification']] = mag_df.apply(
-                embed_params.extract_finding_characteristics,
-                axis='columns',
-                result_type='expand'
-            )
-
-        Args:
-            row (Series): A pandas Series object representing a single row of data.
-                The Series should contain the following keys:
-                - 'massshape'
-                - 'massmargin'
-                - 'massdens'
-                - 'calcdistri'
-                - 'calcfind'
-                - 'calcnumber'
-
-        Returns:
-            dict: A dictionary with keys ['mass', 'asymmetry', 'arch_distortion', 'calcification'],
-            where each key maps to 0 (absent) or 1 (present).
-        """
-
-        # output imaging features coded as either 0: absent or 1: present
-        findings_dict: dict[str, int] = {
-            "mass": 0,
-            "asymmetry": 0,
-            "arch_distortion": 0,
-            "calcification": 0,
+    if is_screen_exam:
+        br_to_val_dict: dict[str, int] = {
+            "A": 0,  # 'A' maps to birads 0
+            "B": 1,  # 'B' maps to birads 2
+            "N": 2,  # 'N' maps to birads 1
+        }
+    else:
+        br_to_val_dict: dict[str, int] = {
+            "N": 5,  # 'N' maps to birads 1
+            "B": 4,  # 'B' maps to birads 2
+            "P": 3,  # 'P' maps to birads 3
+            "S": 2,  # 'S' maps to birads 4
+            "M": 1,  # 'M' maps to birads 5
+            "K": 0,  # 'K' maps to birads 6
         }
 
-        if (
-            (row["massshape"] in ["G", "R", "O", "X", "N", "Y", "D", "L"])
-            or (row["massmargin"] in ["D", "U", "M", "I", "S"])
-            or (row["massdens"] in ["+", "-", "="])
-        ):
-            findings_dict["mass"] = 1
+    # map birads scores against finding assessments, then get the worst (min) int
+    worst_br_val: int = min(group.asses.map(br_to_val_dict).tolist())
+    # flip the br_to_val_dict to convert it back to a string (empty string if invalid)
+    val_to_br_dict: dict[int, str] = {v: k for k, v in br_to_val_dict.items()}
+    worst_br_str: str = val_to_br_dict.get(worst_br_val, "")
+    return worst_br_str
 
-        if row["massshape"] in ["T", "B", "S", "F", "V"]:
-            findings_dict["asymmetry"] = 1
 
-        if row["massshape"] in ["Q", "A"]:
-            findings_dict["arch_distortion"] = 1
+def extract_characteristics(row: Series) -> dict[str, int]:
+    """
+    Extracts finding-level imaging characteristics from a given row of data.
 
-        if (
-            (~isna(row["calcdistri"]) & (row["calcdistri"] != ""))
-            or (~isna(row["calcfind"]) & (row["calcfind"] != ""))
-            or (~isna(row["calcnumber"]) & (row["calcnumber"] > 0))
-        ):
-            findings_dict["calcification"] = 1
+    This method processes a pandas Series representing a single row of data
+    and determines the presence (1) or absence (0) of specific imaging
+    features (Mass, Asymmetry, Architectural Distortion, Calcification).
 
-        return findings_dict
+    The output is a dictionary with binary values indicating the presence of these features.
 
-    def aggregate_characteristics(self, group: DataFrame):
-        """
-        Aggregates finding-level characteristics to the exam-level.
+    Example Usage:
+        mag_df[['mass', 'asymmetry', 'arch_distortion', 'calcification']] = mag_df.apply(
+            embed_params.extract_finding_characteristics,
+            axis='columns',
+            result_type='expand'
+        )
 
-        This method processes a dataframe grouped by `acc_anon`, where each group represents
-        findings from a unique exam, and aggregates the characteristics to determine
-        their presence (1) or absence (0) at the exam level. If any finding in the group
-        has a characteristic present (value of 1), the exam-level characteristic is marked
-        as present (1).
+    Args:
+        row (Series): A pandas Series object representing a single row of data.
+            The Series should contain the following keys:
+            - 'massshape'
+            - 'massmargin'
+            - 'massdens'
+            - 'calcdistri'
+            - 'calcfind'
+            - 'calcnumber'
 
-        Example Usage:
-            exam_characteristics: dict[int, dict[str, bool]] = mag_df.groupby('acc_anon').apply(
-                embed_params.aggregate_characteristics
-            ).to_dict()
+    Returns:
+        dict: A dictionary with keys ['mass', 'asymmetry', 'arch_distortion', 'calcification'],
+        where each key maps to 0 (absent) or 1 (present).
+    """
 
-            for char_type in ['exam_mass', 'exam_asymmetry', 'exam_arch_distortion', 'exam_calcification']:
-                char_dict = {k: v[char_type] for k, v in exam_characteristics.items()}
-                mag_df[char_type] = mag_df['acc_anon'].map(char_dict)
+    # output imaging features coded as either 0: absent or 1: present
+    findings_dict: dict[str, int] = {
+        "mass": 0,
+        "asymmetry": 0,
+        "arch_distortion": 0,
+        "calcification": 0,
+    }
 
-        Args:
-            group (DataFrame): A pandas DataFrame representing a group of findings
-                from an exam. The DataFrame must contain the following columns:
-                - 'mass': Binary column indicating the presence (1) or absence (0) of a mass.
-                - 'asymmetry': Binary column indicating the presence (1) or absence (0) of an asymmetry.
-                - 'arch_distortion': Binary column indicating the presence (1) or absence (0) of an architectural distortion.
-                - 'calcification': Binary column indicating the presence (1) or absence (0) of a calcification.
+    if (
+        (row["massshape"] in ["G", "R", "O", "X", "N", "Y", "D", "L"])
+        or (row["massmargin"] in ["D", "U", "M", "I", "S"])
+        or (row["massdens"] in ["+", "-", "="])
+    ):
+        findings_dict["mass"] = 1
 
-        Returns:
-            dict: A dictionary with keys ['exam_mass', 'exam_asymmetry', 'exam_arch_distortion', 'exam_calcification'],
-            where each key maps to 1 if the corresponding characteristic is present in any finding
-            within the group, or 0 otherwise.
+    if row["massshape"] in ["T", "B", "S", "F", "V"]:
+        findings_dict["asymmetry"] = 1
 
-        Notes:
-            - This method assumes that finding-level characteristics have already been extracted
-            (e.g., using `extract_characteristics`).
-        """
-        return {
-            "exam_mass": int(any(group.mass)),
-            "exam_asymmetry": int(any(group.asymmetry)),
-            "exam_arch_distortion": int(any(group.arch_distortion)),
-            "exam_calcification": int(any(group.calcification)),
-        }
+    if row["massshape"] in ["Q", "A"]:
+        findings_dict["arch_distortion"] = 1
+
+    if (
+        (~isna(row["calcdistri"]) & (row["calcdistri"] != ""))
+        or (~isna(row["calcfind"]) & (row["calcfind"] != ""))
+        or (~isna(row["calcnumber"]) & (row["calcnumber"] > 0))
+    ):
+        findings_dict["calcification"] = 1
+
+    return findings_dict
+
+
+def aggregate_characteristics(group: DataFrame):
+    """
+    Aggregates finding-level characteristics to the exam-level.
+
+    This method processes a dataframe grouped by `acc_anon`, where each group represents
+    findings from a unique exam, and aggregates the characteristics to determine
+    their presence (1) or absence (0) at the exam level. If any finding in the group
+    has a characteristic present (value of 1), the exam-level characteristic is marked
+    as present (1).
+
+    Example Usage:
+        exam_characteristics: dict[int, dict[str, bool]] = mag_df.groupby('acc_anon').apply(
+            embed_params.aggregate_characteristics
+        ).to_dict()
+
+        for char_type in ['exam_mass', 'exam_asymmetry', 'exam_arch_distortion', 'exam_calcification']:
+            char_dict = {k: v[char_type] for k, v in exam_characteristics.items()}
+            mag_df[char_type] = mag_df['acc_anon'].map(char_dict)
+
+    Args:
+        group (DataFrame): A pandas DataFrame representing a group of findings
+            from an exam. The DataFrame must contain the following columns:
+            - 'mass': Binary column indicating the presence (1) or absence (0) of a mass.
+            - 'asymmetry': Binary column indicating the presence (1) or absence (0) of an asymmetry.
+            - 'arch_distortion': Binary column indicating the presence (1) or absence (0) of an architectural distortion.
+            - 'calcification': Binary column indicating the presence (1) or absence (0) of a calcification.
+
+    Returns:
+        dict: A dictionary with keys ['exam_mass', 'exam_asymmetry', 'exam_arch_distortion', 'exam_calcification'],
+        where each key maps to 1 if the corresponding characteristic is present in any finding
+        within the group, or 0 otherwise.
+
+    Notes:
+        - This method assumes that finding-level characteristics have already been extracted
+        (e.g., using `extract_characteristics`).
+    """
+    return {
+        "exam_mass": int(any(group.mass)),
+        "exam_asymmetry": int(any(group.asymmetry)),
+        "exam_arch_distortion": int(any(group.arch_distortion)),
+        "exam_calcification": int(any(group.calcification)),
+    }
 
 
 @register_dataframe_accessor("embed")
@@ -526,7 +526,12 @@ class EMBEDDataFrameTools:
     def __init__(self, pandas_object):
         self._df = pandas_object
 
-    def head_cols(self, *cols: str, col_list: Optional[list[str]] = None) -> DataFrame:
+    def head_cols(
+        self,
+        *cols: str,
+        sort_by: str = "study_date_anon",
+        col_list: Optional[list[str]] = None
+    ) -> DataFrame:
         """
         Returns a subset of the DataFrame with commonly used or user-specified columns.
 
@@ -553,11 +558,14 @@ class EMBEDDataFrameTools:
         # returns a subset of the dataframe using a set of commonly used minimum columns (can be overwritten by specifying `col_list` or added to with positional string args)
         if col_list is None:
             default_col_list = self._params.head_columns
+            default_col_list.append(sort_by)
+            default_col_list = list(set(default_col_list))
+
             col_list = [c for c in [*default_col_list, *cols] if c in self._df.columns]
 
         try:
             # return df sorted by date if possible
-            return self._df[col_list].sort_values("study_date_anon")
+            return self._df[col_list].sort_values(sort_by)
 
         except KeyError:
             # otherwise just return the df
