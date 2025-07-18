@@ -636,6 +636,13 @@ def correct_contralaterals(
     if other_copy_cols is not None:
         col_copy_list.extend(other_copy_cols)
 
+    # ignore any columns that don't exist in the df
+    missing_cols = list(set(col_copy_list).difference(set(df.columns)))
+    if len(missing_cols) > 0:
+        print("Ignoring columns not found in dataframe:", missing_cols)
+        col_copy_list = list(set(col_copy_list).intersection(set(df.columns)))
+        print("Included copy columns:", col_copy_list)
+
     # get list of exams that require contralateral correction
     # normalize 'side' column: treat empty string/nan as 'B'
     out_df["side"] = out_df["side"].replace("", "B").fillna("B")
