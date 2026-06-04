@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -166,3 +165,5 @@ logs/*
 __pycache__
 */__pycache__/*
 
+# exclude vscode dir
+.vscode
