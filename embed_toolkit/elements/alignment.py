@@ -91,6 +91,21 @@ class Alignment:
 
         return (y_min, x_min, y_max, x_max)
 
+    def realign_coords_list(
+        self,
+        coords_list: list[tuple[float, float, float, float]],
+        height: float,
+        width: float,
+        target_alignment: Optional["Alignment"] = None,
+    ) -> list[tuple[float, float, float, float]]:
+        # init list for output coords
+        output_list: list[tuple[float, float, float, float]] = []
+
+        for coords in coords_list:
+            output_list.append(self.realign_coords(coords, height, width, target_alignment))
+
+        return output_list
+
     def realign_image(
         self,
         image: np.ndarray,
