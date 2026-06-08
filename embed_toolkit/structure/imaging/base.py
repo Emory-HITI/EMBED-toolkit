@@ -64,9 +64,9 @@ class ImageBase(ABC):
     def __hash__(self) -> int:
         return hash(self.hash_id)
 
-    def transfer_rois(self, target: "ImageBase") -> list[RegionOfInterest]:
-        """Transfer this image's ROIs to the target, resizing and re-aligning as needed."""
-        return [roi.transfer(target=target) for roi in self.rois]
+    # def transfer_rois(self, target: "ImageBase") -> list[RegionOfInterest]:
+    #     """Transfer this image's ROIs to the target, resizing and re-aligning as needed."""
+    #     return [roi.transfer(target=target) for roi in self.rois]
 
     @classmethod
     def from_dicom(

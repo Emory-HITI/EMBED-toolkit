@@ -43,10 +43,11 @@ class RegionOfInterest:
     #     return max(self.frames) + self._z_padding
 
     def __repr__(self) -> str:
-        frame_str: str = (
-            f", frames: {self.z_min} - {self.z_max}" if self.z_min is not None else ""
-        )
-        return f"RegionOfInterest({self.coords}{frame_str})"
+        return f"RegionOfInterest({self.coords})"
+        # frame_str: str = (
+        #     f", frames: {self.z_min} - {self.z_max}" if self.z_min is not None else ""
+        # )
+        # return f"RegionOfInterest({self.coords}{frame_str})"
 
     @property
     def y_min(self) -> float:
