@@ -3,8 +3,34 @@ from dataclasses import dataclass
 
 from abc import ABC
 
-from embed_toolkit.elements.general import Laterality
+from embed_toolkit.structure.clinical.quadrants import Quadrant
 
+"""
+
+"finding": [
+    "massshape", -- string -- "find_mass_shape"
+    "massmargin", -- string -- "find_mass_margin"
+    "massdens", -- string -- "find_mass_density"
+    "calcfind", -- string -- "find_calc_morphology"
+    "calcdistri", -- string -- "find_calc_distribution"
+    "calcnumber", -- string -- "find_calc_number"
+    "otherfind", -- string -- "find_other"
+    "implanfind", -- string -- "find_implant"
+    "consistent", -- string -- "find_consistent"
+    "side", -- string -- "find_side"
+    "size", -- string -- "find_size"
+    "location", -- string -- "find_loc"
+    "depth", -- string -- "find_depth"
+    "distance", -- int -- "find_distance"
+    "numfind", -- int -- "find_number"
+    "asses", -- string -- "find_birads"
+    "recc", -- string -- "find_recommendation"
+    "stable", -- int/bool (currently 0/-1) -- "find_stable"
+    "new", -- int/bool (currently 0/-1) -- "find_new"
+    "changed", -- string -- "find_changed"
+],
+
+"""
 
 class BiRads(Enum):
     ZERO = 0  # incomplete
@@ -19,8 +45,8 @@ class BiRads(Enum):
 @dataclass
 class Finding(ABC):
     num: int  # numfind
-    laterality: Laterality
     assessment: BiRads
+    quadrant: Quadrant
 
 
 # Calcifications -----------------------------------------------------------------------------------------------
