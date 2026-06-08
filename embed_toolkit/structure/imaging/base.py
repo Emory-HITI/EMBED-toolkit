@@ -1,8 +1,14 @@
+import uuid
 from abc import ABC
+from typing import Union
+
+import pandas as pd
+import pydicom
+
+from embed_toolkit.elements.alignment import Alignment
 from embed_toolkit.elements.general import Laterality
-from embed_toolkit.structure.imaging.general import ViewPosition, ImageModality
-
-
+from embed_toolkit.structure.imaging.general import ImageModality, ViewPosition
+from embed_toolkit.structure.imaging.rois import RegionOfInterest
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ImageBase
