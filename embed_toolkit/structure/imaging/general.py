@@ -3,6 +3,15 @@ import re
 from enum import Enum
 from typing import Union
 
+class ImageModality(Enum):
+    FFDM = "2D"
+    DBT = "3D"
+    S2D = "cview"
+    UNKNOWN = "UNKNOWN"
+
+    @classmethod
+    def _missing_(cls, value) -> "ImageModality":
+        return cls.UNKNOWN
 
 class ViewPosition(Enum):
     CC = "CC"
