@@ -15,7 +15,7 @@ from embed_toolkit.structure.imaging.rois import RegionOfInterest
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class ImageBase(ABC):
+class Mammogram(ABC):
     """Base class for all image representations in the pipeline."""
 
     """
@@ -74,7 +74,7 @@ class ImageBase(ABC):
         dicom: pydicom.FileDataset,
         modality: Union[str, ImageModality],
         file_path: str = "",
-    ) -> "ImageBase":
+    ) -> "Mammogram":
         """Constructor that builds an ImageBase object from a loaded pydicom.FileDataset"""
         if not isinstance(modality, ImageModality):
             modality: ImageModality = ImageModality(modality)
@@ -112,7 +112,7 @@ class ImageBase(ABC):
         width_col: str = "Columns",
         frames_col: str = "ImagesInAcquisition",
         path_col: str = "anon_dicom_path",
-    ) -> "ImageBase":
+    ) -> "Mammogram":
         """Constructor that builds an ImageBase object from a Pandas series"""
         laterality: Laterality = Laterality(str(series[laterality_col]))
         view_position: ViewPosition = ViewPosition(str(series[view_pos_col]))
