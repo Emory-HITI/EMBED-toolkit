@@ -1,6 +1,7 @@
 import uuid
 from abc import ABC
-from typing import Union
+from typing import Union, Optional
+import numpy as np
 
 import pandas as pd
 import pydicom
@@ -9,6 +10,7 @@ from embed_toolkit.elements.alignment import Alignment
 from embed_toolkit.elements.general import Laterality
 from embed_toolkit.structure.imaging.general import ImageModality, ViewPosition
 from embed_toolkit.structure.imaging.rois import RegionOfInterest
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ImageBase
@@ -20,9 +22,8 @@ class Mammogram(ABC):
 
     """
     TODO:
-    what else should this base class be capable of handling?
-    - basic pixel array preprocessing ops? or should this be a mixin???????
-    - roi parsing/display stuff is good, but should that also be a mixin?
+    - basic pixel array preprocessing
+    - plotting w/ automatic ROI display if registered
 
     potential mixins: RegionOfInterestMixin, PixelArrayMixin
     RegionOfInterestMixin:
@@ -61,8 +62,27 @@ class Mammogram(ABC):
         self.frames: int = frames
         self.rois: list[RegionOfInterest] = []
 
+        # initialize a _pixels attribute to handle lazy loading of the pixel array
+        self._pixels: Optional[np.ndarray] = None
+
     def __hash__(self) -> int:
         return hash(self.hash_id)
+
+    def pixels(self) -> np.ndarray:
+        if self._pixels is None:
+            return self._load_pixels()
+        else:
+            return self._pixels
+
+    def _load_pixels(self) -> np.ndarray:
+        # load pixel data from the dicom and save the resulting array to self._pixels
+        # also return it
+        self._pixels = pydicom.pixels.pixel_array(self.path)
+
+        # handle any other preprocessing here
+
+        return self._pixels
+
 
     # def transfer_rois(self, target: "ImageBase") -> list[RegionOfInterest]:
     #     """Transfer this image's ROIs to the target, resizing and re-aligning as needed."""
@@ -113,7 +133,7 @@ class Mammogram(ABC):
         frames_col: str = "ImagesInAcquisition",
         path_col: str = "anon_dicom_path",
     ) -> "Mammogram":
-        """Constructor that builds an ImageBase object from a Pandas series"""
+        """Constructor that builds an Mammogram object from a Pandas series"""
         laterality: Laterality = Laterality(str(series[laterality_col]))
         view_position: ViewPosition = ViewPosition(str(series[view_pos_col]))
         alignment: Alignment = Alignment.from_orientation(
