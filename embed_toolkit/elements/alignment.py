@@ -265,3 +265,24 @@ class Alignment:
                 return Alignment(AlignmentDirection.RIGHT, AlignmentDirection.UP)
             case _:
                 return Alignment(AlignmentDirection.UNKNOWN, AlignmentDirection.UNKNOWN)
+
+
+if __name__ == "__main__":
+    def normalize_alignment(dicom: pydicom.FileDataset, coords_list: list[tuple[float, float, float, float]]) -> tuple[np.ndarray, list[tuple[float, float, float, float]]]:
+        """
+        Example usage for image and ROI list realignment 
+        """
+        # determine dicom alignment
+        alignment: Alignment = Alignment.from_dicom(dicom)
+
+        # realign dicom and coords list
+        image: np.ndarray = alignment.realign_image(dicom.pixel_array)
+
+        # get dicom height/width
+        height: int = int(dicom["Rows"].value)
+        width: int = int(dicom["Columns"].value)
+
+        # realign coords list
+        coords_list: list[tuple[float, float, float, float]] = alignment.realign_coords_list(coords_list, height, width)
+
+        return image, coords_list
