@@ -167,3 +167,7 @@ __pycache__
 
 # exclude vscode dir
 .vscode
+
+# exclude .ipynb notebooks for testing
+*.ipynb
+
