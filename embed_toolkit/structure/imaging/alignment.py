@@ -6,10 +6,13 @@ import numpy as np
 import pandas as pd
 import pydicom
 
-from embed_toolkit.elements.general import (
+from embed_toolkit.structure.primitives import (
+    Laterality,
+)
+
+from embed_toolkit.structure.imaging.general import (
     FovHFlip,
     FovRotation,
-    Laterality,
     OrientationDirection,
     PatientOrientation,
     ViewPosition,
