@@ -246,10 +246,19 @@ class Patient:
 
         # TODO: finish this c:
 
+    @classmethod
+    def from_series(cls, data: pd.Series) -> "Patient":
+        # expects a series with only the patient-level features
+        empi_anon: int = int(data.empi_anon)
+        cohort_num: int = int(data.cohort_num)
+        demographics: PatientDemographics = PatientDemographics(
+            dob=data.PATIENT_BIRTH_DT_anon,
+            race=PatientRace(data.race),
+            ethnicity=PatientEthnicity(data.ethnicity),
+            language=PatientLanguage(data.patient_language),
+        )
 
-def parse_patient_data(data: pd.Series):
-    # parse patient demographics
-    race: PatientRace = PatientRace("")
+        return cls(empi_anon, cohort_num, demographics)
 
 
 # ------------------------------------------------------------------------------------------------------
