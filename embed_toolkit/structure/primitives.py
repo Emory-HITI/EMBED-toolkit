@@ -18,4 +18,3 @@ class Laterality(Enum):
                 return cls.RIGHT
             case _:
                 return cls.UNKNOWN
-
