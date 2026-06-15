@@ -193,37 +193,9 @@ class PatientDemographics:
     language: PatientLanguage
 
 
-@dataclass(frozen=True)
-class PatientExamDemographics:
-    # patient demographics which can vary over time
-    age: float
-    first_3_zip: int
-
-    gender: PatientGender
-    marital_status: PatientMaritalStatus
-
-    # attr for static demographics
-    _static: PatientDemographics
-
-    @property
-    def dob(self) -> date:
-        # wrapper property to expose the dob attr from the underlying static demographics
-        return self._static.dob
-
-    @property
-    def race(self) -> PatientRace:
-        # wrapper property to expose the race attr from the underlying static demographics
-        return self._static.race
-
-    @property
-    def ethnicity(self) -> PatientEthnicity:
-        # wrapper property to expose the ethnicity attr from the underlying static demographics
-        return self._static.ethnicity
-
-
 # ------------------------------------------------------------------------------------------------------
 
-# patience core object ---------------------------------------------------------------------------------
+# patient core object ----------------------------------------------------------------------------------
 
 
 class Patient:
